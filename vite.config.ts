@@ -3,8 +3,16 @@ import {resolve} from 'path'
 import vue from '@vitejs/plugin-vue'
 import copy from 'rollup-plugin-copy'
 import svgLoader from 'vite-svg-loader'
+import fs from 'fs';
 
 export default defineConfig({
+	  server: {
+	  port: 8000,
+    https: {
+      key: fs.readFileSync('./certs/key.pem'),
+      cert: fs.readFileSync('./certs/certificate.pem'),
+    },
+  },
     plugins: [
         vue(),
         svgLoader(),

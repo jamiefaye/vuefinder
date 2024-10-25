@@ -70,6 +70,7 @@ import { parse } from '../../utils/filesize.js';
 import title_shorten from "../../utils/title_shorten.js";
 import ModalHeader from "./ModalHeader.vue";
 import UploadSVG from "../icons/upload.svg";
+import {DelugeSysexUploader} from '../../utils/DelugeSysexUploader.js';
 
 const app = inject('ServiceContainer');
 const {t} = app.i18n;
@@ -299,15 +300,14 @@ onMounted(async () => {
     }
   });
 
+/*
   uppy.use(XHR, {
     endpoint: 'WILL_BE_REPLACED_BEFORE_UPLOAD',
     limit: 5,
     timeout: 0,
     getResponseError(responseText, _response) {
-      /** @type {String} */
       let message;
       try {
-        /** @type {*} */
         const body = JSON.parse(responseText);
         message = body.message;
       } catch (e) {
@@ -316,6 +316,9 @@ onMounted(async () => {
       return new Error(message);
     },
   });
+*/
+  uppy.use(DelugeSysexUploader, {app: app});
+
   uppy.on('restriction-failed', (upFile, error) => {
     //remove the restricted file.
     const entry = queue.value[findQueueEntryIndexById(upFile.id)];
@@ -323,9 +326,11 @@ onMounted(async () => {
     message.value = error.message;
   });
   uppy.on('upload', () => {
+
     const reqParams = buildReqParams();
     uppy.setMeta({ ...reqParams.body });
-    const xhrPlugin = uppy.getPlugin('XHRUpload');
+    //const xhrPlugin = uppy.getPlugin('XHRUpload');
+    const xhrPlugin = uppy.getPlugin('DelugeSysexUploader');
     xhrPlugin.opts.method = reqParams.method;
     xhrPlugin.opts.endpoint = reqParams.url + '?' + new URLSearchParams(reqParams.params);
     xhrPlugin.opts.headers = reqParams.headers;
@@ -339,6 +344,7 @@ onMounted(async () => {
       file.status = QUEUE_ENTRY_STATUS.UPLOADING;
       file.statusName = t('Pending upload');
     });
+
   });
   uppy.on('upload-progress', (upFile, progress) => {
     // upFile.progress.percentage never updates itself during this callback, and progress param definition showed

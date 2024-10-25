@@ -3,8 +3,8 @@
       class="vuefinder__context-menu">
     <li class="vuefinder__context-menu__item" v-for="(item) in filteredItems" :key="item.title">
       <template v-if="item.link">
-        <a class="vuefinder__context-menu__link" target="_blank" :href="item.link" :download="item.link"
-           @click="app.emitter.emit('vf-contextmenu-hide')">
+        <a class="vuefinder__context-menu__link" target="_blank"
+           @click="downLoader(item.link);app.emitter.emit('vf-contextmenu-hide')">
           <span>{{ item.title() }}</span>
         </a>
       </template>
@@ -180,6 +180,7 @@ app.emitter.on('vf-contextmenu-show', ({event, items, target = null}) => {
   } else {
     if (target.type === 'dir') {
       context.items.push(menuItems.open);
+      context.items.push(menuItems.download);
       if (app.pinnedFolders.findIndex((item) => item.path === target.path) !== -1) {
         context.items.push(menuItems.unpinFolder);
       } else {
@@ -234,5 +235,20 @@ const showContextMenu = (event) => {
     };
   });
 };
+
+function downLoader(path) {
+	console.log("downLd: " + path);
+  app.requester.send({
+    //url: '',
+    //method: 'get',
+    params: {q: 'download', path: path},
+    //responseType: 'text',
+  })
+   .then(data => {
+        //content.value = data;
+        app.emitter.emit('success');
+  });
+
+}
 
 </script>

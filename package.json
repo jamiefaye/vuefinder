@@ -47,6 +47,8 @@
     "@uppy/xhr-upload": "^3.6.7",
     "cropperjs": "^1.5.12",
     "dragselect": "^3.0.5",
+    "file-saver": "^2.0.5",
+    "jquery": "^3.7.1",
     "mitt": "^3.0.0",
     "overlayscrollbars": "^2.10.0",
     "vanilla-lazyload": "^17.8.3",

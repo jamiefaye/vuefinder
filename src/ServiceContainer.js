@@ -1,6 +1,9 @@
 import {computed, reactive, ref} from "vue";
 import mitt from "mitt";
-import {buildRequester} from "./utils/ajax.js";
+// Change the following lines to be either "./utils/MidiRequester.js" or "./utils/ajax.js"
+// As needed to change the interface to the back end from Midi to HTML. 
+import {buildRequester} from "./utils/MidiRequester.js";
+//import {buildRequester} from "./utils/ajax.js";
 import {useStorage} from "./composables/useStorage.js";
 import {useI18n} from "./composables/useI18n.js";
 import {FEATURE_ALL_NAMES, FEATURES} from "./features.js";

@@ -1,23 +1,14 @@
 <template>
+    <MidiControl/>
   <div class="wrapper">
     <div style="font-weight: bold;padding: 10px">Inline select button example</div>
+
     <vue-finder
       id='my_vuefinder'
       :request="request"
       :max-file-size="maxFileSize"
       :features="features"
       :select-button="handleSelectButton"
-    />
-
-    <br>
-    <br>
-    <div style="font-weight: bold;padding: 10px">External select example</div>
-    <vue-finder
-      id='my_vuefinder2'
-      :request="request"
-      :max-file-size="maxFileSize"
-      :features="features"
-      @select="handleSelect"
     />
 
     <button class="btn" @click="handleButton" :disabled="!selectedFiles.length">Show Selected  ({{ selectedFiles.length ?? 0 }} selected)</button>
@@ -37,13 +28,13 @@
 <script setup>
 import { ref } from 'vue';
 import { FEATURES, FEATURE_ALL_NAMES } from '../src/features.js';
-
+import MidiControl from '../src/components/MidiControl.vue';
 /** @type {import('../src/utils/ajax.js').RequestConfig} */
-
 const request = {
   // ----- CHANGE ME! -----
   // [REQUIRED] Url for development server endpoint
-  baseUrl: "http://vuefinder.ozdemir.be.test/vuefinder",
+	// baseUrl: "http://localhost:8005/vuefinder",
+	baseUrl: "/",
   // ----- CHANGE ME! -----
 
   // Additional headers & params & body

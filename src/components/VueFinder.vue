@@ -224,8 +224,8 @@ onMounted(() => {
   // app.fs.adapter can be null at first, until we get the adapter list it will be the first one from response
   // later we can set default adapter from a prop value
 
-  // if there is a path coming from the prop, we should use it.
-  fetchPath(app.fs.path)
+  // if there is a path coming from the prop, we should use it. (But not now, as Midi is not running yet).
+  // fetchPath(app.fs.path)
 
   // We re-fetch the data if the path prop is updated
   watch(() => props.path, (path) => {

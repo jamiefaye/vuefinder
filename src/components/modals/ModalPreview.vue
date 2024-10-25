@@ -38,7 +38,7 @@
         target="_blank"
         class="vf-btn vf-btn-primary"
         :download="app.requester.getDownloadUrl(app.modal.data.adapter, app.modal.data.item)"
-        :href="app.requester.getDownloadUrl(app.modal.data.adapter, app.modal.data.item)"
+        @click="downLd(app.requester.getDownloadUrl(app.modal.data.adapter, app.modal.data.item))"
         v-if="app.features.includes(FEATURES.DOWNLOAD)">{{ t('Download') }}</a>
     </template>
   </ModalLayout>
@@ -65,4 +65,20 @@ const enabledPreview = app.features.includes(FEATURES.PREVIEW)
 if (!enabledPreview) {
   loaded.value = true;
 }
+
+function downLd(path) {
+	console.log("downLd: " + path);
+  app.requester.send({
+    //url: '',
+    //method: 'get',
+    params: {q: 'download', adapter: app.modal.data.adapter, path: app.modal.data.item.path},
+    //responseType: 'text',
+  })
+   .then(data => {
+        //content.value = data;
+        app.emitter.emit('success');
+  });
+
+}
+
 </script>
