@@ -323,6 +323,24 @@ handleNewFolder(req) {
   		});
 	  	return promise;
 }
+
+handleRename(req) {
+	  	let { promise, resolve, reject } = Promise.withResolvers();
+	  	let path = req.params.path;
+	  	let name = req.body.name;
+	  	let item = req.body.item;
+	  	let toName = path + '/' + name;
+  		sendJsonRequest("rename", {from: item, to: toName},(verb, object, data, payoff, zeroX)=>{
+  			let params = object[verb];
+  			if (params.err !== 0) {
+  				reject(params.err);
+  			} else {
+  					this.returnIndex(path, resolve, reject);
+   			}
+  		});
+	  	return promise;
+}
+
     /**
      * Send request
      * @param {Object} input
@@ -377,10 +395,15 @@ handleNewFolder(req) {
  				case 'delete':
  							prom = this.handleDelete(reqParams);
  						  break;
+
  				case 'newfolder':
  							prom = this.handleNewFolder(reqParams);
  						  break;  
-
+ 
+				case 'rename':
+						  prom = this.handleRename(reqParams);
+						  break;
+	
  				default: console.log("Undefined query type for send(): " + input.params.q);
  							break;
 
