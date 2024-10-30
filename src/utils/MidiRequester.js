@@ -1,4 +1,4 @@
-import {getDirInfo, readFile, recursiveDelete, getRidOfDoubleLeadingSlashes, filenamePartOnly} from './FileRoutines.js';
+import {getDirInfo, readFile, recursiveDelete, downloadOneItem, recursiveDownload, getRidOfDoubleLeadingSlashes, filenamePartOnly} from './FileRoutines.js';
 import { saveAs } from 'file-saver';
 import {sendJsonRequest} from './JsonReplyHandler.js';
 
@@ -42,6 +42,8 @@ export const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttrib
  * @param {RequestTransformParams} request
  * @returns {RequestTransformResult}
  */
+ 
+ 
 
 /**
  * Base http requester
@@ -227,7 +229,6 @@ class Requester {
 					fe.file_size = de.size;	
 				}
 				files.push(fe);
-
 			}
 			dirInfo.files = files;
   		resolve(dirInfo);
@@ -246,8 +247,9 @@ class Requester {
 		return promise;
 
 	}
-	
- handleDownload(req, signal) {
+
+
+ oldHandleDownload(req, signal) {
   	console.log("Downloading: " + req);
   	
   	let { promise, resolve, reject } = Promise.withResolvers();
@@ -279,6 +281,27 @@ class Requester {
 
   	return promise;
   }
+ 
+  handleDownload(req, signal) {
+
+  	let { promise, resolve, reject } = Promise.withResolvers();
+		let dlPath = getRidOfDoubleLeadingSlashes(req.params.path);
+
+     var dirHandle = window.showDirectoryPicker({
+         mode: 'readwrite'//ask for write permission
+     }).then((dirHandle) =>{
+				downloadOneItem(dlPath, dirHandle).then(()=>{resolve()}).catch(err=>{
+					console.log(err);
+					
+					recursiveDownload(dlPath, dirHandle).then(()=>{resolve()});
+				}); // end of catch function.
+     });
+
+  	return promise;
+  }
+ 
+ 
+ 
  
  handleDelete(req) {
   	let { promise, resolve, reject } = Promise.withResolvers();

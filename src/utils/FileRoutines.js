@@ -314,6 +314,59 @@ async function recursiveDelete(path, isDir) {
 	  return promise;
 }
 
+async function verifyPermission(fileHandle, readWrite) {
+   const options = {};
+   if (readWrite) {
+       options.mode = 'readwrite';
+   }
+   if ((await fileHandle.queryPermission(options)) === 'granted') {
+       return true;
+   }
+   if ((await fileHandle.requestPermission(options)) === 'granted') {
+       return true;
+   }
+   return false;
+}
+
+ async function downloadOneItem(readPath, dirHandle) {
+		let { promise, resolve, reject } = Promise.withResolvers();
+ 		let stopIt = readFile(readPath, async (readPath, err, data)=>{
+ 		if (err === undefined || err == 0) {
+				let saveName = filenamePartOnly(readPath);
+				const fileHandle = await dirHandle.getFileHandle(saveName, { create: true });
+				if (await verifyPermission(fileHandle, true)) {
+            const writable = await fileHandle.createWritable();
+            const blobOut = new Blob(data);
+            await writable.write(blobOut);
+            await writable.close();
+            resolve();
+        } 
+		} else if (err !== 0) {
+			reject(err);
+		}
+	});
+	return promise;
+}
+
+
+
+	async function recursiveDownload(path, destDirHandle) {
+	  let { promise, resolve, reject } = Promise.withResolvers();
+
+		getDirInfo(path, async (err, dirList) => {
+			for (const de of dirList) {
+				let fullPath = path + "/" + de.name;
+				if (de.attr & 0x10) {
+					await recursiveDownload(fullPath, destDirHandle);
+				} else {
+					await downloadOneItem(fullPath, destDirHandle);
+				}
+			}
+				resolve(path);
+		});
+
+	  return promise;
+  }
 
 function getRidOfDoubleLeadingSlashes(ins) {
 	if (ins.startsWith("//")) return ins.substring(1);
@@ -326,4 +379,4 @@ function filenamePartOnly(ins) {
 	return ins;
 }
 
-export {readFile, openAndConvert, writeToFile, ping, recursiveDelete, getDirInfo, getRidOfDoubleLeadingSlashes, filenamePartOnly}
+export {readFile, openAndConvert, writeToFile, ping, recursiveDelete, downloadOneItem, recursiveDownload, getDirInfo, getRidOfDoubleLeadingSlashes, filenamePartOnly}

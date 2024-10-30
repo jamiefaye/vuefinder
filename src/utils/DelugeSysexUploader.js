@@ -39,7 +39,7 @@ class DelugeSysexUploader extends BasePlugin {
 							let aBuf = event.target.result;
 							let asu8 = new Uint8Array(aBuf);
 							let dirPart = ourApp.fs.data.dirname;
-							let destPath = dirPart + "/" + uf.name;	
+							let destPath = dirPart + "/" + uf.name;
 							let abortFunction = writeToFile(destPath, asu8, (err) => {
         				if (err === 0) {
         					console.log("Done: " + destPath);
