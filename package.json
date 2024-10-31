@@ -10,7 +10,7 @@
   "module": "./dist/vuefinder.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --base=/deluge/vuefinder/",
     "preview": "vite preview"
   },
   "homepage": "https://github.com/n1crack/vuefinder#readme",
