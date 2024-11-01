@@ -42,6 +42,7 @@ function readFile(readPath, doneCB, progressCB) {
         }
 
         let attached = GetAttachedUint8Array(data, zeroX);
+        console.log(attached);
         let blkadd = resp.addr;
 
         if (attached.length > 0) {
@@ -336,7 +337,7 @@ async function verifyPermission(fileHandle, readWrite) {
 				const fileHandle = await dirHandle.getFileHandle(saveName, { create: true });
 				if (await verifyPermission(fileHandle, true)) {
             const writable = await fileHandle.createWritable();
-            const blobOut = new Blob(data);
+            const blobOut = new Blob([data]);
             await writable.write(blobOut);
             await writable.close();
             resolve();
