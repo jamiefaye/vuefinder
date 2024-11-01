@@ -42,7 +42,6 @@ function readFile(readPath, doneCB, progressCB) {
         }
 
         let attached = GetAttachedUint8Array(data, zeroX);
-        console.log(attached);
         let blkadd = resp.addr;
 
         if (attached.length > 0) {

@@ -1,8 +1,6 @@
 <template>
     <MidiControl/>
   <div class="wrapper">
-    <div style="font-weight: bold;padding: 10px">Inline select button example</div>
-
     <vue-finder
       id='my_vuefinder'
       :request="request"
@@ -100,7 +98,7 @@ body {
 }
 .wrapper {
   max-width: 800px;
-  margin: 80px auto;
+  margin: 12px auto;
 }
 .btn{
   display: block;
