@@ -80,7 +80,7 @@ function readFile(readPath, doneCB, progressCB) {
         highestAskedFor = 0;
         fileAllRead = false;
 
-        console.log("Size: " + resp.size);
+        //console.log("Size: " + resp.size);
         let params = {};
         params.fid = resp.fid;
         params.addr = highestAskedFor;
@@ -202,7 +202,6 @@ function writeToFile(path, fromByteArray, doneCB, progressCB) {
     let oparams = {};
  
     let cleaner = zonkUnicode(path.replace('//', '/'));
-    console.log(cleaner);
     oparams.path = cleaner;
     
     function abortFunction() {
@@ -216,29 +215,6 @@ function writeToFile(path, fromByteArray, doneCB, progressCB) {
 }
 
 
-
- 	function ping() {
- 		 let pingCtr= 100;
- 		 let startT;
- 		 let params = {};
-
- 		 function reping() {
- 	 	 	pingCtr--;
-	 	 	if (pingCtr > 0) {
-	 	 		 	 sendJsonRequest("ping", params, reping);
-	 	 	} else {
-	 	 		if (timeIt) {
-	 	 			let endT = Date.now();
-	 	 			let dT = endT - startT;
-					console.log("dT: " + dT);
-				}
-	 	 	}
-	 	 	 //console.log("pong " + pingCtr);	 
- 		 };
- 		 if (timeIt) startT = Date.now();
-	 	 sendJsonRequest("ping", params, reping);
- 	}
- 
  	const linesPerRequest = 20;
 
 // dirDoneCB(err, entriesArray);
@@ -287,7 +263,7 @@ function deleteOneItem(path) {
    }
   });
 
-  console.log("Deleting one item: " + path);
+  // console.log("Deleting one item: " + path);
 	resolve();
 	return promise;
 }
@@ -339,6 +315,7 @@ async function verifyPermission(fileHandle, readWrite) {
             const blobOut = new Blob([data]);
             await writable.write(blobOut);
             await writable.close();
+//          console.log("written: " + readPath);
             resolve();
         } 
 		} else if (err !== 0) {
@@ -348,16 +325,15 @@ async function verifyPermission(fileHandle, readWrite) {
 	return promise;
 }
 
-
-
 	async function recursiveDownload(path, destDirHandle) {
 	  let { promise, resolve, reject } = Promise.withResolvers();
-
+// create a daughter directory if needed.
 		getDirInfo(path, async (err, dirList) => {
 			for (const de of dirList) {
 				let fullPath = path + "/" + de.name;
 				if (de.attr & 0x10) {
-					await recursiveDownload(fullPath, destDirHandle);
+					let childDirHandle = await destDirHandle.getDirectoryHandle(de.name, {create: true});
+					await recursiveDownload(fullPath, childDirHandle);
 				} else {
 					await downloadOneItem(fullPath, destDirHandle);
 				}
@@ -379,4 +355,4 @@ function filenamePartOnly(ins) {
 	return ins;
 }
 
-export {readFile, openAndConvert, writeToFile, ping, recursiveDelete, downloadOneItem, recursiveDownload, getDirInfo, getRidOfDoubleLeadingSlashes, filenamePartOnly}
+export {readFile, openAndConvert, writeToFile, recursiveDelete, downloadOneItem, recursiveDownload, getDirInfo, getRidOfDoubleLeadingSlashes, filenamePartOnly}

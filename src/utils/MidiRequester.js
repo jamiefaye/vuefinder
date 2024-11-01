@@ -150,7 +150,6 @@ class Requester {
 
     // Mangled by JFF to return a single slash pathname only.
     getDownloadUrl(adapter, node) {
-    	console.log("Download URL: " + node.path);
     		return getRidOfDoubleLeadingSlashes(node.path);
     }
 
@@ -185,7 +184,6 @@ class Requester {
 		if (path.startsWith("//")) {
 			path = path.substring(1);
 		}
-		console.log("Index path: " + path);
 
   	let reply = getDirInfo(path, (err, data)=>{
   		// Convert from cascade to VueFinder)
@@ -288,20 +286,33 @@ class Requester {
   	let { promise, resolve, reject } = Promise.withResolvers();
 		let dlPath = getRidOfDoubleLeadingSlashes(req.params.path);
 
-     var dirHandle = window.showDirectoryPicker({
+     var dirPromise = window.showDirectoryPicker({
          mode: 'readwrite'//ask for write permission
-     }).then((dirHandle) =>{
-				downloadOneItem(dlPath, dirHandle).then(()=>{resolve()}).catch(err=>{
-					console.log(err);
-					
-					recursiveDownload(dlPath, dirHandle).then(()=>{resolve()});
+     }).then((dirHand) =>{
+				downloadOneItem(dlPath, dirHand).then(()=>{resolve()}).catch(err=>{
+					if (err !== 4) {
+							console.log("Error from download: " + err);
+							reject (err);
+							return;
+					}
+
+					let daughter = "";
+					let parts = dlPath.split("/");
+					if (parts.length > 0) {
+						daughter = parts[parts.length - 1];
+					}
+				// Create a daughter directory if needed.
+					dirHand.getDirectoryHandle(daughter, {create: true})
+					.then( (daughterDirHandle)=>{
+						recursiveDownload(dlPath, daughterDirHandle);
+						}
+					)
+					.then(()=>{resolve()});
 				}); // end of catch function.
      });
 
   	return promise;
   }
- 
- 
  
  
  handleDelete(req) {
@@ -314,7 +325,6 @@ class Requester {
  		let that = this;
   	function deleter() {
   		if (itemIndex >= itemList.length) {
-  			console.log("Resolving: " + lastDir);
   			that.returnIndex(lastDir, resolve, reject);
   		} else {
   			let aItem = itemList[itemIndex];
@@ -322,7 +332,6 @@ class Requester {
   			let spltz = aPath.split('/');
   			spltz.pop();
   			lastDir = spltz.join('/');
-  			console.log("Deleting: " + aPath);
   			itemIndex++;
   			let del = {path: aPath};
   			recursiveDelete(aPath, aItem.type === 'dir').then((d)=>deleter());
