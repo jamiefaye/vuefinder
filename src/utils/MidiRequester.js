@@ -200,9 +200,25 @@ class Requester {
 
   		let files = [];
 			if (data !== undefined) for (const de of data) {
+				const d = new Date();
+				if (de.time !== undefined) {
+				let hours = de.time >> 11;
+				let minutes = (de.time >> 5) & 0x3f;
+				let seconds = (de.v & 0x1f) * 2;
+				let day = de.date & 0x1F;
+				let month = (de.date >> 5) & 0x0F;
+				let year = ((de.date >> 9) & 0x7F) + 1980;
+
+				d.setHours(hours);
+				d.setMinutes(minutes);
+				d.setSeconds(seconds);
+				d.setYear(year);
+				d.setMonth(month);
+				d.setDate(day);
+			}
 				let fe = { 
 					 "visibility": "public",
-           "last_modified": 1728578834.316252
+           "last_modified": d.getTime() / 1000.0
         };
         if (de.attr & 0x10) {
 					fe.type = "dir";
