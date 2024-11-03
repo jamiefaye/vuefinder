@@ -3,29 +3,49 @@
     <h3 class="vuefinder__audio-preview__title" id="modal-title" :title="app.modal.data.item.path">
       {{ app.modal.data.item.basename }}
     </h3>
-    <div>
-      <audio class="vuefinder__audio-preview__audio" controls>
-        <source :src="getAudioUrl()" type="audio/mpeg">
-        Your browser does not support the audio element.
-      </audio>
+    <div v-if='dataRead'>
+      <AudioPeaks
+        :src="getAudioUrl()" />
+
     </div>
   </div>
 </template>
 
 <script setup>
 
-import {inject, onMounted} from 'vue';
-
+import {ref, inject, onMounted, onUnmounted} from 'vue';
+import { AudioPeaks } from 'vue-peaks';
+// default styles for the AudioPeaks component
+import 'vue-peaks/dist/style.css';
+import {readFile, getRidOfDoubleLeadingSlashes} from "../../utils/FileRoutines.js";
 const emit = defineEmits(['success']);
 
 const app = inject('ServiceContainer');
+const dataRead = ref(false);
+let earl;
 
 const getAudioUrl = () => {
-  return app.requester.getPreviewUrl(app.modal.data.adapter, app.modal.data.item)
+  return earl;
 }
 
 onMounted(() => {
-  emit('success');
+  let dataVal = app.modal.data;
+  let rawPath = dataVal.item.path;
+  let readPath = getRidOfDoubleLeadingSlashes(rawPath);
+  readFile(readPath, (readPath, err, data)=>{
+  	let blob = new Blob([data], { type: "audio/wav" });
+  	earl = URL.createObjectURL(blob);
+  	dataRead.value = true;
+  	emit('success');
+  });
+
+});
+
+onUnmounted(() => {
+ 	if (earl !== undefined) {
+ 	 URL.revokeObjectURL(earl);
+ 	 earl = undefined;
+ 	}
 });
 
 </script>

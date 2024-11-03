@@ -52,6 +52,7 @@
     "mitt": "^3.0.0",
     "overlayscrollbars": "^2.10.0",
     "vanilla-lazyload": "^17.8.3",
-    "vue": "3.5.10"
+    "vue": "3.5.10",
+    "vue-peaks": "^2.0.2"
   }
 }

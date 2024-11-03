@@ -1,4 +1,4 @@
-import {getDirInfo, readFile, recursiveDelete, downloadOneItem, recursiveDownload, getRidOfDoubleLeadingSlashes, filenamePartOnly} from './FileRoutines.js';
+import {getDirInfo, readFile, writeToFile, recursiveDelete, downloadOneItem, recursiveDownload, guessMimeType, isTextFile, getRidOfDoubleLeadingSlashes, filenamePartOnly} from './FileRoutines.js';
 import { saveAs } from 'file-saver';
 import {sendJsonRequest} from './JsonReplyHandler.js';
 
@@ -240,7 +240,8 @@ class Requester {
 					fe.basename = fname;
 					fe.extension = ext;
 					fe.storage = null;
-					fe.file_size = de.size;	
+					fe.file_size = de.size;
+					fe.mime_type = guessMimeType(fname);
 				}
 				files.push(fe);
 			}
@@ -263,24 +264,24 @@ class Requester {
 	}
 
 
- oldHandleDownload(req, signal) {
+ handlePreview(req, signal) {
   	console.log("Downloading: " + req);
   	
   	let { promise, resolve, reject } = Promise.withResolvers();
 
 		let readPath = getRidOfDoubleLeadingSlashes(req.params.path);
-
 		let stopIt = readFile(readPath, (readPath, err, data)=>{
 				if (err === undefined || err == 0) {
-					let saveName = filenamePartOnly(readPath);
-					 const blob = new Blob([data]);
-					 saveAs(blob, saveName);
-					 resolve({});
+					 if (isTextFile(readPath)) {
+					 let asText = new TextDecoder().decode(data);
+					 resolve(asText);
+					} else {
+						resolve(data);
+					}
 				}
 		});
 
 		if (signal !== undefined) {
-			
 			// If the signal is already aborted, immediately throw in order to reject the promise.
     	if (signal.aborted) {
       	reject(signal.reason);
@@ -292,7 +293,6 @@ class Requester {
       	reject(signal.reason);
     	});
 		}
-
   	return promise;
   }
   
@@ -330,7 +330,54 @@ class Requester {
   	return promise;
   }
  
+ 	convertStringToUint8Array(str) {
+ 		const uint8 = new Uint8Array(str.length);
+		for (let i = 0; i < str.length; i++) {
+  			uint8[i] = str.charCodeAt(i);
+		}
+ 		return uint8;
+ 	}
  
+ 
+  handleSave(req, dataIn, signal) {
+  	let lastProgress = -1;
+  	let { promise, resolve, reject } = Promise.withResolvers();
+		let data = dataIn;
+		if (typeof dataIn == 'string') {
+			data = this.convertStringToUint8Array(dataIn);
+			console.log(data);
+		}
+		let savePath = getRidOfDoubleLeadingSlashes(req.params.path);
+		console.log(savePath);
+
+		let abortFunction = writeToFile(savePath, data, (err) => {
+        	if (err === 0) {
+							resolve(dataIn);
+        		} else {
+        				reject(err);
+        		}
+    			}, (sofar, total)=> {
+    					let nowPer = Math.round((sofar/total) * 10);
+    					if (nowPer > lastProgress) {
+    						  console.log("Progress: " + nowPer * 10);
+    						  lastProgress = nowPer;
+    						}
+    });
+
+		if (signal !== undefined) {
+			// If the signal is already aborted, immediately throw in order to reject the promise.
+    	if (signal.aborted) {
+      	reject(signal.reason);
+    	}
+	    signal.addEventListener("abort", () => {
+      	// Stop the main operation
+      	// Reject the promise with the abort reason.
+      	reject(signal.reason);
+    	});
+		}
+  	return promise;
+  }
+  
  handleDelete(req) {
   	let { promise, resolve, reject } = Promise.withResolvers();
   	let bod = req.body;
@@ -439,6 +486,18 @@ handleRename(req) {
 
 				case 'upload': 
 							// prom = this.handleUpload(reqParams, newBody);
+ 							break;
+
+				case 'save': 
+							let data = reqParams.body.content;
+							//if (responseType === 'text') {
+							//	 const encoder = new TextEncoder();
+							//	 data = encoder.encode(data);
+							// }
+							prom = this.handleSave(reqParams, data, init.signal);
+ 							break;
+				case 'preview': 
+							prom = this.handlePreview(reqParams, init.signal);
  							break;
 
  				case 'delete':

@@ -21,8 +21,8 @@
           v-model="contentTemp"
           class="vuefinder__text-preview__textarea"
           name="text"
-          cols="30"
-          rows="10"
+          cols="80"
+          rows="16"
         ></textarea>
       </div>
       <message v-if="message.length" @hidden="message=''" :error="isError">{{ message }}</message>

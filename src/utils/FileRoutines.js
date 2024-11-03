@@ -94,7 +94,7 @@ function readFile(readPath, doneCB, progressCB) {
         sendJsonRequest("read", params, readCallback);
     }
 
-    // Kick the process off by openning the file to read.
+    // Kick the process off by opening the file to read.
     let params = {};
     params.path = readPath;
     sendJsonRequest("open", params, openCallback);
@@ -344,6 +344,27 @@ async function verifyPermission(fileHandle, readWrite) {
 	  return promise;
   }
 
+ function isTextFile(path) {
+ 		let lcPath = path.toLowerCase();
+ 		return (lcPath.endsWith(".xml") 
+ 				|| lcPath.endsWith(".txt") 
+ 	 			|| lcPath.endsWith(".json") 
+ 	 			) ;			
+ }
+ 
+function guessMimeType(path) {
+	let lcPath = path.toLowerCase();
+  if (lcPath.endsWith(".xml")) return 'text/xml';
+  if (lcPath.endsWith(".json")) return 'application/json';
+  if (lcPath.endsWith(".txt")) return 'text/plain';
+  if (lcPath.endsWith(".wav")) return 'audio/x-wav';
+  if (lcPath.endsWith(".jpg")
+ 	  || lcPath.endsWith(".jpe")
+ 	  || lcPath.endsWith(".jpeg")) return 'image/jpeg';
+  if (lcPath.endsWith(".png")) return 'image/png';
+	return "application/octet-stream";
+}
+
 function getRidOfDoubleLeadingSlashes(ins) {
 	if (ins.startsWith("//")) return ins.substring(1);
 	return ins;
@@ -355,4 +376,4 @@ function filenamePartOnly(ins) {
 	return ins;
 }
 
-export {readFile, openAndConvert, writeToFile, recursiveDelete, downloadOneItem, recursiveDownload, getDirInfo, getRidOfDoubleLeadingSlashes, filenamePartOnly}
+export {readFile, openAndConvert, writeToFile, recursiveDelete, downloadOneItem, recursiveDownload, getDirInfo, guessMimeType, isTextFile, getRidOfDoubleLeadingSlashes, filenamePartOnly}

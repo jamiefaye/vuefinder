@@ -28,9 +28,6 @@
       <div><span class="font-bold">{{ t('File Size') }}: </span>{{ app.filesize(app.modal.data.item.file_size) }}</div>
       <div><span class="font-bold pl-2">{{ t('Last Modified') }}: </span> {{ datetimestring(app.modal.data.item.last_modified) }}</div>
     </div>
-    <div class="vuefinder__preview-modal__note" v-if="app.features.includes(FEATURES.DOWNLOAD)">
-      <span>{{ t('Download doesn\'t work? You can try right-click "Download" button, select "Save link as...".') }}</span>
-    </div>
 
     <template v-slot:buttons>
       <button type="button" @click="app.modal.close()" class="vf-btn vf-btn-secondary">{{ t('Close') }}</button>
