@@ -42,6 +42,8 @@ class DelugeSysexUploader extends BasePlugin {
 							let destPath = dirPart + "/" + uf.name;
 							let abortFunction = writeToFile(destPath, asu8, (err) => {
         				if (err === 0) {
+        					let dummyResp = {uploadURL: destPath};
+        					ourUppy.emit('upload-success', uf, dummyResp);
         					console.log("Done: " + destPath);
         					uploadNext();
         				} else {
