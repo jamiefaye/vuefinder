@@ -153,7 +153,7 @@ function writeToFile(path, fromByteArray, doneCB, progressCB) {
 		  let resp = js[verb];
 		  if (resp.err === 0) {
 		  	let utp = {path: cleanPath, date: dt.fdate, time: dt.ftime};
-		  	sendJsonRequest("utime", utp);
+		  	sendJsonRequest("utime", utp, ()=>{});
 		  }
 
 			if (doneCB !== undefined) doneCB(resp.err);
