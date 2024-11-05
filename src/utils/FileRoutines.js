@@ -29,7 +29,8 @@ function readFile(readPath, doneCB, progressCB) {
     function closeWithError(fid, err) {
         let clos = {};
         clos.fid = fid;
-        sendJsonRequest("close", clos, () => {});
+        sendJsonRequest("close", clos, () => {
+        	});
         if (doneCB) doneCB(readPath, err);
     }
 
@@ -129,8 +130,6 @@ function openAndConvert(path) {
 }
 
 
-
-
   function zonkUnicode(ins) {
   	let outs = "";
   	for (let i = 0; i < ins.length; ++i) {
@@ -147,16 +146,23 @@ function writeToFile(path, fromByteArray, doneCB, progressCB) {
     let writtenSoFar = 0;
     let writeOffset = 0;
     let stopped = false;
+    let dt = date2fdatetime(new Date());
+    let cleanPath;
 
-		function callDone(verb, js) {
+		function closeDone(verb, js) {
 		  let resp = js[verb];
+		  if (resp.err === 0) {
+		  	let utp = {path: cleanPath, date: dt.fdate, time: dt.ftime};
+		  	sendJsonRequest("utime", utp);
+		  }
+
 			if (doneCB !== undefined) doneCB(resp.err);
 		}
 
     function closeWrite(fid) {
         let clos = {};
         clos.fid = fid;
-        sendJsonRequest("close", clos, callDone);
+        sendJsonRequest("close", clos, closeDone);
     };
 
     function writeNext(verb, js, data, payloadOffset, zeroX) {
@@ -201,14 +207,18 @@ function writeToFile(path, fromByteArray, doneCB, progressCB) {
 
     let oparams = {};
  
-    let cleaner = zonkUnicode(path.replace('//', '/'));
-    oparams.path = cleaner;
+    cleanPath = zonkUnicode(path.replace('//', '/'));
+    oparams.path = cleanPath;
     
     function abortFunction() {
     	stopped = true;
     }
 
     oparams.write = 1;
+    // For intermediate directory creation only (at the moment).
+    oparams.time = dt.ftime;
+    oparams.date = dt.fdate;
+
     sendJsonRequest("open", oparams, postOpen);
 
     return abortFunction;
@@ -365,6 +375,43 @@ function guessMimeType(path) {
 	return "application/octet-stream";
 }
 
+// Convert js Date to/from FAT directory fdate and ftime values.
+function fdatetime2Date(fdate, ftime) {
+		const d = new Date();
+		if (fdate !== undefined) {
+				let day = fdate & 0x1F;
+				let month = (fdate >> 5) & 0x0F;
+				let year = ((fdate >> 9) & 0x7F) + 1980;
+				d.setYear(year);
+				d.setMonth(month - 1);
+				d.setDate(day);
+		}
+
+		if (ftime !== undefined) {
+				let hours = ftime >> 11;
+				let minutes = (ftime >> 5) & 0x3f;
+				let seconds = (ftime & 0x1f) * 2;
+				d.setHours(hours);
+				d.setMinutes(minutes);
+				d.setSeconds(seconds);
+		} 
+		return d;
+}
+
+function date2fdatetime(d) {
+		if (d === undefined) d = new Date();
+		let fdate = ((d.getFullYear() - 1980) << 9)
+				| ((d.getMonth() + 1) << 5)
+				| d.getDate();
+
+		let ftime = (d.getHours() << 11)
+				| (d.getMinutes() << 5)
+				| Math.round(d.getSeconds() / 2);
+
+		return{fdate, ftime};
+}
+
+
 function getRidOfDoubleLeadingSlashes(ins) {
 	if (ins.startsWith("//")) return ins.substring(1);
 	return ins;
@@ -376,4 +423,5 @@ function filenamePartOnly(ins) {
 	return ins;
 }
 
-export {readFile, openAndConvert, writeToFile, recursiveDelete, downloadOneItem, recursiveDownload, getDirInfo, guessMimeType, isTextFile, getRidOfDoubleLeadingSlashes, filenamePartOnly}
+export {readFile, openAndConvert, writeToFile, recursiveDelete, downloadOneItem, recursiveDownload, getDirInfo, guessMimeType, isTextFile,
+	 fdatetime2Date, date2fdatetime, getRidOfDoubleLeadingSlashes, filenamePartOnly}

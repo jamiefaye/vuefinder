@@ -1,4 +1,4 @@
-import {getDirInfo, readFile, writeToFile, recursiveDelete, downloadOneItem, recursiveDownload, guessMimeType, isTextFile, getRidOfDoubleLeadingSlashes, filenamePartOnly} from './FileRoutines.js';
+import {getDirInfo, readFile, writeToFile, recursiveDelete, downloadOneItem, recursiveDownload, guessMimeType, isTextFile, fdatetime2Date, date2fdatetime, getRidOfDoubleLeadingSlashes, filenamePartOnly} from './FileRoutines.js';
 import { saveAs } from 'file-saver';
 import {sendJsonRequest} from './JsonReplyHandler.js';
 
@@ -200,22 +200,8 @@ class Requester {
 
   		let files = [];
 			if (data !== undefined) for (const de of data) {
-				const d = new Date();
-				if (de.time !== undefined) {
-				let hours = de.time >> 11;
-				let minutes = (de.time >> 5) & 0x3f;
-				let seconds = (de.v & 0x1f) * 2;
-				let day = de.date & 0x1F;
-				let month = (de.date >> 5) & 0x0F;
-				let year = ((de.date >> 9) & 0x7F) + 1980;
+				const d = fdatetime2Date(de.date, de.time);
 
-				d.setHours(hours);
-				d.setMinutes(minutes);
-				d.setSeconds(seconds);
-				d.setYear(year);
-				d.setMonth(month - 1);
-				d.setDate(day);
-			}
 				let fe = { 
 					 "visibility": "public",
            "last_modified": d.getTime() / 1000.0
@@ -409,7 +395,9 @@ handleNewFolder(req) {
 	  	let path = req.params.path;
 	  	let name = req.body.name;
 	  	let fullPath = path + '/' + name;
-  		sendJsonRequest("mkdir", {path: fullPath},(verb, object, data, payoff, zeroX)=>{
+	  	let dt = date2fdatetime(new Date());
+	  	let params = {date: dt.fdate, time: dt.ftime, path: fullPath};
+  		sendJsonRequest("mkdir", params,(verb, object, data, payoff, zeroX)=>{
   			let params = object[verb];
   			if (params.err !== 0) {
   				reject(params.err);
